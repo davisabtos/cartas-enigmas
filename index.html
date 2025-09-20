@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Carta Literária</title>
+    <style>
+      /* Reset e estilo básico */
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        margin: 0;
+        padding: 1rem;
+        background: #f9f9f9;
+        color: #222;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 100vh;
+      }
+      main {
+        max-width: 600px;
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgb(0 0 0 / 0.1);
+      }
+      h1 {
+        font-size: 1.8rem;
+        margin-bottom: 0.2rem;
+      }
+      h2 {
+        font-size: 1.2rem;
+        font-weight: normal;
+        color: #555;
+        margin-top: 0;
+        margin-bottom: 1rem;
+      }
+      img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
+      }
+      .description {
+        font-style: italic;
+        margin-bottom: 1rem;
+        color: #444;
+      }
+      .answer {
+        background: #e0f7fa;
+        border-left: 4px solid #00796b;
+        padding: 1rem;
+        font-weight: bold;
+        font-size: 1.1rem;
+        border-radius: 4px;
+      }
+      .error {
+        color: #b00020;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 2rem;
+      }
+      @media (max-width: 640px) {
+        body {
+          padding: 0.5rem;
+        }
+        main {
+          width: 100%;
+          box-shadow: none;
+          border-radius: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main id="content">
+      <p>Carregando dados da carta...</p>
+    </main>
+
+    <script>
+      // URL do JSON exportado da planilha (exemplo fictício)
+      const DATA_URL =
+        'https://api.sheetbest.com/sheets/c7c0d39a-8425-4c58-a11f-2f2c42e4dbbd'
+
+      // Função para obter o parâmetro "id" da URL
+      function getCartaId() {
+        const params = new URLSearchParams(window.location.search)
+        return params.get('id')?.toUpperCase() || null
+      }
+
+      // Função para criar o conteúdo da carta
+      function renderCarta(carta) {
+        const content = document.getElementById('content')
+        content.innerHTML = `
+        <h1>${carta['Título da obra']}</h1>
+        <h2>Autor: ${carta['Autor']}</h2>
+        <img src="${carta['Link da capa (imagem online)']}" alt="Capa do livro ${carta['Título da obra']}" />
+        <p class="description">${carta['Descrição curta']}</p>
+        <div class="answer">Resposta correta: ${carta['Resposta correta']}</div>
+      `
+      }
+
+      // Função para mostrar erro
+      function renderError(msg) {
+        const content = document.getElementById('content')
+        content.innerHTML = `<p class="error">${msg}</p>`
+      }
+
+      async function init() {
+        const cartaId = getCartaId()
+        if (!cartaId) {
+          renderError(
+            'ID da carta não especificado na URL. Use ?id=A, ?id=B, etc.'
+          )
+          return
+        }
+
+        try {
+          const response = await fetch(DATA_URL)
+          if (!response.ok) throw new Error('Erro ao carregar dados')
+          const data = await response.json()
+
+          // Procurar carta pelo ID
+          const carta = data.find(
+            item => item['ID da carta'].toUpperCase() === cartaId
+          )
+          if (!carta) {
+            renderError(`Carta com ID "${cartaId}" não encontrada.`)
+            return
+          }
+
+          renderCarta(carta)
+        } catch (error) {
+          renderError(
+            'Não foi possível carregar os dados. Tente novamente mais tarde.'
+          )
+          console.error(error)
+        }
+      }
+
+      init()
+    </script>
+  </body>
+</html>
